@@ -29,3 +29,4 @@ if($bid){//bid가 있다는건 수정이라는 의미다.
 <?php
 include $_SERVER["DOCUMENT_ROOT"]."/project_nextLv/inc/footer.php";
 ?>
+//깃 연결 확인인
