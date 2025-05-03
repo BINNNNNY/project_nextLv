@@ -1,20 +1,8 @@
-<?php
-include $_SERVER["DOCUMENT_ROOT"]."/project_nextLv/inc/header.php";
-?>
-    <form class="row g-3 needs-validation" method="post" action="/project_nextLv/member/login_ok.php">
-        <div class="col-12">
-            <label for="validationCustom02" class="form-label">아이디</label>
-            <input type="text" class="form-control" id="userId" name="userId" placeholder="" required>
-        </div>
-        <div class="col-12">
-            <label for="validationCustom02" class="form-label">비밀번호</label>
-            <input type="password" class="form-control" id="passwd" name="passwd" placeholder="" required>
-        </div>
-               
-        <div class="col-12">
-            <button class="btn btn-primary" type="submit">로그인</button>
-        </div>
-    </form>
-<?php
-include $_SERVER["DOCUMENT_ROOT"]."/project_nextLv/inc/footer.php";
-?>
+            <form class="form-signin" name="login_form" action="login_check.php" method="post">
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="*학번" name="student_id" required />
+              </div>
+              <div class="form-group py-3">
+                <input type="password" class="form-control" placeholder="*비밀번호" name="pass" required />
+              </div>
+            </form>

@@ -1,65 +1,41 @@
-<?php
-include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+   
+    <link rel="stylesheet" type="text/css" href="quiz01_style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-$result = $mysqli->query("select * from board") or die("query error => " . $mysqli->error);
-while ($rs = $result->fetch_object()) {
-	$rsc[] = $rs;
-}
-?>
-<p style="text-align:right;">
-	<?php
-	if (isset($_SESSION['UID'])) { //세션값이 있는지 여부를 확인해서 로그인 했는지를 체크한다.
-	?>
-		<a href="/project_nextLv/write.php"><button type="button" class="btn btn-primary">등록</button><a>
-		<a href="/project_nextLv/member/logout.php"><button type="button" class="btn btn-primary">로그아웃</button><a>
-	<?php
-	} else {
-	?>
-		<a href="/project_nextLv/member/login.php"><button type="button" class="btn btn-primary">로그인</button><a>
-		<a href="/project_nextLv/member/signup.php"><button type="button" class="btn btn-primary">회원가입</button><a>
-	<?php
-	}
-	?>
-</p>
-<table class="table">
-	<thead>
-		<tr>
-			<th scope="col">번호</th>
-			<th scope="col">글쓴이</th>
-			<th scope="col">제목</th>
-			<th scope="col">등록일</th>
-		</tr>
-	</thead>
-	<tbody>
-		<?php
-		$i = 1;
-		foreach ($rsc ?? [] as $r) {
-		?>
-			<tr>
-				<th scope="row"><?php echo $i++; ?></th>
-				<td><?php echo $r->userId ?></td>
-				<td><a href="/project_nextLv/view.php?bid=<?php echo $r->bid; ?>"><?php echo $r->title ?></a></td>
-				<td><?php echo $r->date ?></td>
-			</tr>
-		<?php } ?>
-	</tbody>
-</table>
-<p style="text-align:right;">
+    <script>
+      $(document).ready(function(){
+        $('.carousel').carousel({
+          interval: 2000 
+        });
+      });
 
-<?php
-if($_SESSION['UID']){
-?>
-<a href="write.php"><button type="button" class="btn btn-primary">등록</button><a>
-<a href="/member/logout.php"><button type="button" class="btn btn-primary">로그아웃</button><a>
-<?php
-}else{
-?>
-<a href="/member/login.php"><button type="button" class="btn btn-primary">로그인</button><a>
-<a href="/member/signup.php"><button type="button" class="btn btn-primary">회원가입</button><a>
-<?php
-}
-?>
-</p>
-<?php
-include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/footer.php";
-?>
+      function searchProduct() {
+          var searchText = document.getElementById('searchInput').value;
+          console.log("Searching for:", searchText);
+         
+      }
+      
+     
+    </script>
+
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/headers.css">
+    <link rel="stylesheet" type="text/css" href="./css/footers.css">
+    <link rel="stylesheet" type="text/css" href="./css/features.css">
+  </head>
+  <body>
+    <main>
+    <?php include "header.php";?> <!-- 헤더 -->
+    <?php include "main.php";?>   <!-- 메인 -->
+    <?php include "footer.php";?> <!-- 푸터 -->
+    </main>
+  </body>
+</html>
