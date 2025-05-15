@@ -1,22 +1,23 @@
-<?php session_start();
-include $_SERVER["DOCUMENT_ROOT"]."/project_nextLv/inc/dbcon.php";
+<?php
+include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
+session_start();
 
-$userId=$_POST["userId"];
-$passwd=$_POST["passwd"];
-$passwd=hash('sha512',$passwd);
+$userId = $_POST['userId'];
+$passwd = hash('sha512', $_POST['passwd']);
 
-$query = "select * from member where userId='".$userId."' and passwd='".$passwd."'";
-$result = $mysqli->query($query) or die("query error => ".$mysqli->error);
-$rs = $result->fetch_object();
+$query = "SELECT * FROM users WHERE user_id=? AND password=?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param("ss", $userId, $passwd);
+$stmt->execute();
+$result = $stmt->get_result();
 
-if($rs){
-    $_SESSION['UID']= $rs->userId;//세션에 아이디값을 입력
-    $_SESSION['UNAME']= $rs->userName;//세션에 사용자 이름을 입력
-    echo "<script>alert('어서오십시오.');location.href='/project_nextLv/index.php';</script>";
-    exit;
-}else{
-    echo "<script>alert('아이디나 암호가 틀렸습니다. 다시한번 확인해주십시오.');history.back();</script>";
-    exit;
+if ($result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+    $_SESSION['UID'] = $user['user_id'];
+    $_SESSION['UNAME'] = $user['name'];
+    $_SESSION['ROLE'] = $user['role'];
+    echo "<script>location.href='/project_nextLv/index.php';</script>";
+} else {
+    echo "<script>alert('아이디 또는 비밀번호가 잘못되었습니다.'); history.back();</script>";
 }
-
 ?>

@@ -1,6 +1,22 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
+
+// 자동 로그인
+if (!isset($_SESSION['UID']) && isset($_COOKIE['user_token'])) {
+  $token = $_COOKIE['user_token'];
+  $check = $mysqli->query("SELECT * FROM users WHERE token = '$token'");
+  if ($check && $check->num_rows > 0) {
+    $u = $check->fetch_assoc();
+    $_SESSION['UID'] = $u['user_id'];
+    $_SESSION['UNAME'] = $u['name'];
+    $_SESSION['ROLE'] = $u['role'];
+  }
+}
+
+// 현재 페이지 메뉴 활성화
 $current = basename($_SERVER['PHP_SELF']);
 function activeMenu($page) {
   global $current;
@@ -14,7 +30,10 @@ function activeMenu($page) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>전세사기 커뮤니티</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- ✅ Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
       .header-nav a {
         text-decoration: none;
@@ -27,7 +46,7 @@ function activeMenu($page) {
   </head>
 
   <body>
-    <!-- 헤더 -->
+    <!-- ✅ 헤더 -->
     <div class="container d-flex justify-content-between align-items-center py-3 border-bottom">
       <!-- 좌측 로고 -->
       <a href="/project_nextLv/index.php" class="d-flex align-items-center text-decoration-none text-dark icon-primary">
@@ -40,24 +59,25 @@ function activeMenu($page) {
 
       <!-- 중앙 메뉴 -->
       <nav class="header-nav d-flex justify-content-center flex-grow-1">
-        <a class="nav-link <?php echo activeMenu('notice.php'); ?>" href="/project_nextLv/notice.php">공지사항</a>
-        <a class="nav-link <?php echo activeMenu('index.php'); ?>" href="/project_nextLv/index.php">게시판</a>
-        <a class="nav-link <?php echo activeMenu('insurance.php'); ?>" href="/project_nextLv/insurance.php">전세 보증</a>
-        <a class="nav-link <?php echo activeMenu('checklist.php'); ?>" href="/project_nextLv/checklist.php">체크리스트</a>
+        <a class="nav-link <?= activeMenu('notice.php') ?>" href="/project_nextLv/notice.php">공지사항</a>
+        <a class="nav-link <?= activeMenu('index.php') ?>" href="/project_nextLv/index.php">게시판</a>
+        <a class="nav-link <?= activeMenu('insurance.php') ?>" href="/project_nextLv/insurance.php">전세 보증</a>
+        <a class="nav-link <?= activeMenu('checklist.php') ?>" href="/project_nextLv/checklist.php">체크리스트</a>
       </nav>
 
       <!-- 우측 버튼 -->
-      <div class="text-end">
-        <a href="#" class="btn btn-primary btn-sm me-2">무료 법률 자문</a>
-        <?php if (isset($_SESSION['UID'])): ?>
-          <a href="#" class="text-dark me-2">마이페이지</a>
-          <a href="/project_nextLv/member/logout.php" class="text-dark">로그아웃</a>
-        <?php else: ?>
-          <a href="/project_nextLv/member/login.php" class="text-dark me-2">로그인</a>
-          <a href="/project_nextLv/member/signup.php" class="text-dark">회원가입</a>
-        <?php endif; ?>
-      </div>
+  <div class="d-flex align-items-center">
+  <a href="#" class="btn btn-outline-primary btn-sm me-2">무료 법률 자문</a>
+
+  <?php if (isset($_SESSION['UID'])): ?>
+    <span class="me-2 fw-bold">👤 <?= $_SESSION['UNAME'] ?> 님</span>
+    <a href="/project_nextLv/member/logout.php" class="btn btn-outline-danger btn-sm">로그아웃</a>
+  <?php else: ?>
+    <a href="/project_nextLv/member/login.php" class="btn btn-outline-secondary btn-sm me-2">로그인</a>
+    <a href="/project_nextLv/member/signup.php" class="btn btn-primary btn-sm">회원가입</a>
+  <?php endif; ?>
+  </div>
     </div>
 
-    <!-- 본문 시작 -->
+    <!-- ✅ 본문 시작 -->
     <div class="container mb-5">

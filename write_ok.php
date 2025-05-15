@@ -1,35 +1,52 @@
 <?php
-include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
-if(!$_SESSION['UID']){
-    echo "<script>alert('회원 전용 게시판입니다.');location.href='/project_nextLv/index.php';</script>";
-    exit;
+include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
+session_start();
+
+if (!isset($_SESSION['UID'])) {
+  echo "<script>alert('회원 전용 게시판입니다.'); location.href='/project_nextLv/index.php';</script>";
+  exit;
 }
 
-$title=$_POST["title"];
-$content=$_POST["content"];
-$bid=$_POST["bid"];
-$userId=$_SESSION['UID'];
-$status=1;
+$pid        = $_POST['pid'] ?? null;
+$title      = trim($_POST['title'] ?? '');
+$content    = trim($_POST['content'] ?? '');
+$region     = trim($_POST['region'] ?? '');
+$fraud_type = trim($_POST['fraud_type'] ?? '');
+$userId     = $_SESSION['UID'];
 
-if($bid){//bid값이 있으면 수정이고 아니면 등록이다.
-    $result = $mysqli->query("select * from board where bid=".$bid) or die("query error => ".$mysqli->error);
-    $rs = $result->fetch_object();
-
-    if($rs->userId!=$_SESSION['UID']){
-        echo "<script>alert('본인 글이 아니면 수정할 수 없습니다.');location.href='/project_nextLv/index.php';</script>";
-        exit;
-    }
-    $sql="update board set title='".$title."', content='".$content."' where bid=".$bid;//수정하기
-}else{
-    $sql="insert into board (userId,title,content) values ('".$userId."','".$title."','".$content."')";//등록하기
+// 필수값 확인
+if (!$title || !$content) {
+  echo "<script>alert('제목과 내용을 모두 입력해주세요.'); history.back();</script>";
+  exit;
 }
-$result=$mysqli->query($sql) or die($mysqli->error);
 
-if($result){
-    echo "<script>location.href='/project_nextLv/index.php';</script>";
+if ($pid) {
+  // 수정 처리
+  $result = $mysqli->query("SELECT * FROM post WHERE post_id = $pid") or die($mysqli->error);
+  $rs = $result->fetch_object();
+
+  if ($rs->author_id !== $userId) {
+    echo "<script>alert('본인 글이 아니면 수정할 수 없습니다.'); location.href='/project_nextLv/index.php';</script>";
     exit;
-}else{
-    echo "<script>alert('글등록에 실패했습니다.');history.back();</script>";
-    exit;
+  }
+
+  $stmt = $mysqli->prepare("UPDATE post SET title = ?, content = ?, region = ?, fraud_type = ? WHERE post_id = ? AND author_id = ?");
+  $stmt->bind_param("ssssss", $title, $content, $region, $fraud_type, $pid, $userId);
+  $stmt->execute();
+
+  echo "<script>alert('수정되었습니다.'); location.href='/project_nextLv/view.php?pid=$pid';</script>";
+} else {
+  // 등록 처리
+  $stmt = $mysqli->prepare("INSERT INTO post (title, content, region, fraud_type, author_id) VALUES (?, ?, ?, ?, ?)");
+  $stmt->bind_param("sssss", $title, $content, $region, $fraud_type, $userId);
+  $stmt->execute();
+
+  $new_id = $mysqli->insert_id;  // 또는 $stmt->insert_id
+
+  if ($new_id) {
+    echo "<script>alert('등록되었습니다.'); location.href='/project_nextLv/view.php?pid=$new_id';</script>";
+  } else {
+    echo "<script>alert('글 등록에 실패했습니다.'); history.back();</script>";
+  }
 }
-?>
+exit;

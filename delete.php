@@ -1,35 +1,20 @@
-<?php session_start();
-include $_SERVER["DOCUMENT_ROOT"]."/project_nextLv/inc/dbcon.php";
-
-if(!$_SESSION['UID']){
-    echo "<script>alert('회원 전용 게시판입니다.');location.href='/project_nextLv/index.php';</script>";
-    exit;
+<?php
+include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
+session_start();
+$pid = $_GET['pid'] ?? 0;
+if (!$pid || !isset($_SESSION['UID'])) {
+  echo "<script>alert('잘못된 접근입니다.'); location.href='index.php';</script>";
+  exit;
 }
 
-$bid=$_POST["bid"]??$_GET["bid"];//post가 아니면 get으로 받는다
+$result = $mysqli->query("SELECT * FROM post WHERE post_id = $pid") or die($mysqli->error);
+$post = $result->fetch_assoc();
 
-if($bid){
-    $result = $mysqli->query("select * from board where bid=".$bid) or die("query error => ".$mysqli->error);
-    $rs = $result->fetch_object();
-
-    if($rs->userId!=$_SESSION['UID']){
-        echo "<script>alert('본인 글이 아니면 삭제할 수 없습니다.');location.href='/project_nextLv/index.php';</script>";
-        exit;
-    }
-
-    $sql="update board set status=0 where bid=".$bid;//status값을 바꿔준다.
-    $result=$mysqli->query($sql) or die($mysqli->error);
-}else{
-    echo "<script>alert('삭제할 수 없습니다.');history.back();</script>";
-    exit;
+if ($_SESSION['UID'] !== $post['author_id']) {
+  echo "<script>alert('본인 글만 삭제할 수 있습니다.'); history.back();</script>";
+  exit;
 }
 
-
-if($result){
-    echo "<script>alert('삭제했습니다.');location.href='/project_nextLv/index.php';</script>";
-    exit;
-}else{
-    echo "<script>alert('글삭제에 실패했습니다.');history.back();</script>";
-    exit;
-}
-?>
+$mysqli->query("DELETE FROM post WHERE post_id = $pid");
+echo "<script>alert('삭제되었습니다.'); location.href='index.php';</script>";
+exit;

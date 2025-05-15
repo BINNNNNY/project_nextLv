@@ -1,4 +1,3 @@
-
 <?php
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
 
@@ -6,7 +5,8 @@ include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
 $is_admin = isset($_SESSION['UID']) && $_SESSION['UID'] === 'admin';
 
 // 공지사항 목록 불러오기
-$result = $mysqli->query("SELECT * FROM notice ORDER BY id DESC") or die($mysqli->error);
+$result = $mysqli->query("SELECT * FROM notice ORDER BY notice_id DESC") or die($mysqli->error);
+$notices = [];
 while ($row = $result->fetch_object()) {
     $notices[] = $row;
 }
@@ -35,8 +35,8 @@ while ($row = $result->fetch_object()) {
     <?php if (!empty($notices)): $i = 1; foreach ($notices as $n): ?>
       <tr>
         <td><?php echo $i++; ?></td>
-        <td><a href="/project_nextLv/notice_view.php?id=<?php echo $n->id; ?>"><?php echo htmlspecialchars($n->title); ?></a></td>
-        <td><?php echo $n->writer; ?></td>
+        <td><a href="/project_nextLv/notice_view.php?id=<?php echo $n->notice_id; ?>"><?php echo htmlspecialchars($n->title); ?></a></td>
+        <td><?php echo $n->writer ?? $n->admin_id ?? '-'; ?></td>
         <td><?php echo $n->views ?? 0; ?></td>
         <td><?php echo $n->created_at; ?></td>
       </tr>
