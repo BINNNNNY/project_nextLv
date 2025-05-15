@@ -1,31 +1,45 @@
 <?php
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
-if(!$_SESSION['UID']){
-    echo "<script>alert('회원 전용 게시판입니다.');history.back();</script>";
-    exit;
+if (!isset($_SESSION['UID'])) {
+  echo "<script>alert('로그인이 필요합니다.'); location.href='login.php';</script>";
+  exit;
 }
-$bid=$_GET["bid"];//get으로 넘겼으니 get으로 받는다.
+$pid = $_GET['pid'] ?? null;
+$edit = false;
+$title = $content = $region = $fraud_type = '';
 
-if($bid){//bid가 있다는건 수정이라는 의미다.
-    $result = $mysqli->query("select * from board where bid=".$bid) or die("query error => ".$mysqli->error);
-    $rs = $result->fetch_object();
-    if($rs->userid!=$_SESSION['UID']){
-        echo "<script>alert('본인 글이 아니면 수정할 수 없습니다.');history.back();</script>";
-        exit;
-    }
+if ($pid) {
+  $result = $mysqli->query("SELECT * FROM post WHERE post_id = $pid") or die($mysqli->error);
+  $row = $result->fetch_assoc();
+  if ($row['author_id'] !== $_SESSION['UID']) {
+    echo "<script>alert('본인 글만 수정할 수 있습니다.'); history.back();</script>";
+    exit;
+  }
+  $edit = true;
+  extract($row);
 }
 ?>
+<h3 class="mb-4"><?= $edit ? "✏ 글 수정" : "✍ 글쓰기" ?></h3>
 <form method="post" action="write_ok.php">
-    <div class="mb-3">
-        <label for="exampleFormControlInput1" class="form-label">제목</label>
-        <input type="text" name="title" class="form-control" id="exampleFormControlInput1" placeholder="제목을 입력하세요.">
-    </div>
-    <div class="mb-3">
-        <label for="exampleFormControlTextarea1" class="form-label">내용</label>
-        <textarea class="form-control" id="exampleFormControlTextarea1" name="content" rows="3"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">등록</button>
+  <?php if ($edit): ?><input type="hidden" name="pid" value="<?= $post_id ?>"><?php endif; ?>
+  <div class="mb-3">
+    <label class="form-label">제목</label>
+    <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($title) ?>" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">내용</label>
+    <textarea name="content" class="form-control" rows="5" required><?= htmlspecialchars($content) ?></textarea>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">지역</label>
+    <input type="text" name="region" class="form-control" value="<?= htmlspecialchars($region) ?>">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">사기유형</label>
+    <input type="text" name="fraud_type" class="form-control" value="<?= htmlspecialchars($fraud_type) ?>">
+  </div>
+  <div class="text-end">
+    <button type="submit" class="btn btn-primary"><?= $edit ? "수정" : "등록" ?></button>
+  </div>
 </form>
-<?php
-include $_SERVER["DOCUMENT_ROOT"]."/project_nextLv/inc/footer.php";
-?>
+<?php include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/footer.php"; ?>
