@@ -1,12 +1,16 @@
 <?php
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
-$userId = $_GET['userId'] ?? '';
 
-if (!$userId) {
+$user_id = $_GET['user_id'] ?? '';
+
+if (!$user_id) {
   echo "invalid";
   exit;
 }
 
-$result = $mysqli->query("SELECT * FROM users WHERE user_id = '$userId'");
-echo $result->num_rows > 0 ? "taken" : "available";
-?>
+$stmt = $mysqli->prepare("SELECT user_id FROM users WHERE user_id = ?");
+$stmt->bind_param("s", $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
+
+echo $res->num_rows > 0 ? "taken" : "available";

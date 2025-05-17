@@ -1,7 +1,6 @@
 <?php include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php"; ?>
 
-<h3 class="fw-bold border-bottom pb-2 mb-4">📄 전세보증보험 추천</h3>
-
+<div class="page-title-bar">전세보증보험 추천</div>
 <form method="post">
   <!-- 무주택 여부 -->
   <div class="mb-3">

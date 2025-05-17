@@ -1,6 +1,7 @@
 <?php
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
 
+
 // 정렬 조건
 $order = $_GET['order'] ?? 'post_id';
 $allowed = ['post_id', 'title', 'author_id', 'created_at', 'views'];
@@ -43,7 +44,7 @@ function printWriteButton() {
 }
 ?>
 
-<h3 class="mb-4">🗂 게시판</h3>
+<div class="page-title-bar">게시판</div>
 
 <!-- 정렬 버튼 -->
 <div class="d-flex justify-content-between mb-3">
