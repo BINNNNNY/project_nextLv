@@ -60,7 +60,7 @@ function activeMenu($page) {
       <!-- 중앙 메뉴 -->
       <nav class="header-nav d-flex justify-content-center flex-grow-1">
         <a class="nav-link <?= activeMenu('notice.php') ?>" href="/project_nextLv/notice.php">공지사항</a>
-        <a class="nav-link <?= activeMenu('index.php') ?>" href="/project_nextLv/index.php">게시판</a>
+        <a class="nav-link <?= activeMenu('board.php') ?>" href="/project_nextLv/board.php">게시판</a>
         <a class="nav-link <?= activeMenu('insurance.php') ?>" href="/project_nextLv/insurance.php">전세 보증</a>
         <a class="nav-link <?= activeMenu('checklist.php') ?>" href="/project_nextLv/checklist.php">체크리스트</a>
       </nav>
