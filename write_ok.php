@@ -7,12 +7,13 @@ if (!isset($_SESSION['UID'])) {
   exit;
 }
 
-$pid        = $_POST['pid'] ?? null;
-$title      = trim($_POST['title'] ?? '');
-$content    = trim($_POST['content'] ?? '');
-$region     = trim($_POST['region'] ?? '');
-$fraud_type = trim($_POST['fraud_type'] ?? '');
-$userId     = $_SESSION['UID'];
+$pid         = $_POST['pid'] ?? null;
+$title       = trim($_POST['title'] ?? '');
+$content     = trim($_POST['content'] ?? '');
+$region      = trim($_POST['region'] ?? '');
+$sub_region  = trim($_POST['sub_region'] ?? '');
+$fraud_type  = trim($_POST['fraud_type'] ?? '');
+$userId      = $_SESSION['UID'];
 
 // 필수값 확인
 if (!$title || !$content) {
@@ -30,18 +31,19 @@ if ($pid) {
     exit;
   }
 
-  $stmt = $mysqli->prepare("UPDATE post SET title = ?, content = ?, region = ?, fraud_type = ? WHERE post_id = ? AND author_id = ?");
-  $stmt->bind_param("ssssss", $title, $content, $region, $fraud_type, $pid, $userId);
+  $stmt = $mysqli->prepare("UPDATE post SET title = ?, content = ?, region = ?, sub_region = ?, fraud_type = ? WHERE post_id = ? AND author_id = ?");
+  $stmt->bind_param("sssssss", $title, $content, $region, $sub_region, $fraud_type, $pid, $userId);
   $stmt->execute();
 
   echo "<script>alert('수정되었습니다.'); location.href='/project_nextLv/view.php?pid=$pid';</script>";
+
 } else {
   // 등록 처리
-  $stmt = $mysqli->prepare("INSERT INTO post (title, content, region, fraud_type, author_id) VALUES (?, ?, ?, ?, ?)");
-  $stmt->bind_param("sssss", $title, $content, $region, $fraud_type, $userId);
+  $stmt = $mysqli->prepare("INSERT INTO post (title, content, region, sub_region, fraud_type, author_id) VALUES (?, ?, ?, ?, ?, ?)");
+  $stmt->bind_param("ssssss", $title, $content, $region, $sub_region, $fraud_type, $userId);
   $stmt->execute();
 
-  $new_id = $mysqli->insert_id;  // 또는 $stmt->insert_id
+  $new_id = $mysqli->insert_id;
 
   if ($new_id) {
     echo "<script>alert('등록되었습니다.'); location.href='/project_nextLv/view.php?pid=$new_id';</script>";
