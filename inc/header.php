@@ -5,10 +5,10 @@ if (session_status() === PHP_SESSION_NONE) {
 
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
 
-// 자동 로그인 (옵션)
+// 자동 로그인 처리
 if (!isset($_SESSION['UID']) && isset($_COOKIE['user_token'])) {
   $token = $_COOKIE['user_token'];
-  $check = $mysqli->query("SELECT * FROM users WHERE token = '$token'");
+  $check = $mysqli->query("SELECT * FROM users WHERE token = '$token' LIMIT 1");
   if ($check && $check->num_rows > 0) {
     $u = $check->fetch_assoc();
     $_SESSION['UID'] = $u['user_id'];
@@ -17,7 +17,7 @@ if (!isset($_SESSION['UID']) && isset($_COOKIE['user_token'])) {
   }
 }
 
-// 현재 페이지 확인
+// 현재 페이지 추적
 $current = basename($_SERVER['PHP_SELF']);
 function activeMenu($page) {
   global $current;
@@ -32,7 +32,13 @@ function activeMenu($page) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>전세사기 커뮤니티</title>
 
+  <!-- ✅ Bootstrap CSS (스타일만 포함) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- ✅ Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- ✅ Custom CSS -->
   <link rel="stylesheet" href="/project_nextLv/style.css">
 
   <style>
@@ -43,12 +49,15 @@ function activeMenu($page) {
     .icon-primary svg {
       color: #4A3AFF;
     }
+    .nav-link.text-white.bg-primary {
+      font-weight: bold;
+    }
   </style>
 </head>
 
 <body>
   <!-- ✅ 헤더 -->
-  <div class="container d-flex justify-content-between align-items-center py-3 border-bottom">
+  <header class="container d-flex justify-content-between align-items-center py-3 border-bottom">
     <!-- 로고 -->
     <a href="/project_nextLv/index.php" class="d-flex align-items-center text-decoration-none text-dark icon-primary">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-house-fill me-2" viewBox="0 0 16 16">
@@ -69,16 +78,15 @@ function activeMenu($page) {
     <!-- 사용자 상태 -->
     <div class="d-flex align-items-center">
       <a href="#" class="btn btn-outline-primary btn-sm me-2">무료 법률 자문</a>
-
       <?php if (isset($_SESSION['UID'])): ?>
-        <span class="me-2 fw-bold">👤 <?= $_SESSION['UNAME'] ?> 님</span>
+        <span class="me-2 fw-bold">👤 <?= htmlspecialchars($_SESSION['UNAME']) ?> 님</span>
         <a href="/project_nextLv/member/logout.php" class="btn btn-outline-danger btn-sm">로그아웃</a>
       <?php else: ?>
         <a href="/project_nextLv/member/login.php" class="btn btn-outline-secondary btn-sm me-2">로그인</a>
         <a href="/project_nextLv/member/signup.php" class="btn btn-primary btn-sm">회원가입</a>
       <?php endif; ?>
     </div>
-  </div>
+  </header>
 
   <!-- ✅ 본문 시작 -->
-  <div class="container mb-5">
+  <main class="container mb-5">
