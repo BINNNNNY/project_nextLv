@@ -1,123 +1,109 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
+include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
-
-
-// 정렬 조건
-$order = $_GET['order'] ?? 'post_id';
-$allowed = ['post_id', 'title', 'author_id', 'created_at', 'views'];
-$order_by = in_array($order, $allowed) ? $order : 'post_id';
-
-// 검색 처리
-$search = $_GET['search'] ?? '';
-$where = $search ? "WHERE title LIKE '%$search%' OR author_id LIKE '%$search%'" : '';
-
-// 페이지네이션
-$page = max(1, (int)($_GET['page'] ?? 1));
-$limit = 10;
-$offset = ($page - 1) * $limit;
-
-$count_result = $mysqli->query("SELECT COUNT(*) AS cnt FROM post $where") or die($mysqli->error);
-$total_posts = $count_result->fetch_object()->cnt;
-$total_pages = ceil($total_posts / $limit);
-
-$btn_count = 5;
-$start_page = max(1, $page - floor($btn_count / 2));
-$end_page = min($total_pages, $start_page + $btn_count - 1);
-if ($end_page - $start_page < $btn_count - 1) {
-  $start_page = max(1, $end_page - $btn_count + 1);
-}
-
-// 게시글 목록 가져오기
-$result = $mysqli->query("SELECT * FROM post $where ORDER BY $order_by DESC LIMIT $offset, $limit") or die($mysqli->error);
-$rsc = [];
-while ($rs = $result->fetch_object()) {
-  $rsc[] = $rs;
-}
-
-// 글쓰기 버튼 출력 함수
-function printWriteButton() {
-  if (isset($_SESSION['UID'])) {
-    echo '<a href="/project_nextLv/write.php" class="btn btn-primary">글쓰기</a>';
-  } else {
-    echo '<a href="/project_nextLv/member/login.php" class="btn btn-outline-secondary">로그인 후 글쓰기</a>';
-  }
-}
 ?>
 
-<div class="page-title-bar">게시판</div>
+<style>
+  .hero-banner {
+    background: linear-gradient(135deg, #4A3AFF, #8A7CFF);
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+    border-radius: 20px;
+    margin-bottom: 40px;
+  }
+  .service-box {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 
-<!-- 정렬 버튼 -->
-<div class="d-flex justify-content-between mb-3">
-  <div class="btn-group" role="group">
-    <a href="?order=views" class="btn <?= $order === 'views' ? 'btn-primary' : 'btn-outline-secondary' ?>">조회순</a>
-    <a href="?order=post_id" class="btn <?= $order === 'post_id' ? 'btn-primary' : 'btn-outline-secondary' ?>">최신순</a>
+  .service-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+
+  .service-box h4 {
+    color: #4A3AFF;
+    font-weight: bold;
+  }
+</style>
+
+<div class="container py-4">
+  <!-- ✅ 상단 배너 -->
+  <div class="hero-banner">
+    <h1 class="display-5 fw-bold">전세사기 피해, 함께 예방해요</h1>
+    <p class="lead">체크리스트, 보험 추천, 피해사례 공유로 안전한 계약을 도와드립니다.</p>
+    <a href="/project_nextLv/board.php" class="btn btn-light btn-lg mt-3">피해 사례 보러가기</a>
   </div>
-  <?php printWriteButton(); ?>
-</div>
 
-<table class="table table-striped">
-  <thead class="table-light">
-    <tr>
-      <th>번호</th>
-      <th>제목</th>
-      <th>작성자</th>
-      <th>지역</th>
-      <th>사기유형</th>
-      <th>조회수</th>
-      <th>작성일</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php if (!empty($rsc)): ?>
-      <?php $i = $offset + 1; foreach ($rsc as $r): ?>
-        <tr>
-          <td><?= $i++ ?></td>
-          <td><a href="/project_nextLv/view.php?pid=<?= $r->post_id ?>"><?= htmlspecialchars($r->title) ?></a></td>
-          <td><?= htmlspecialchars($r->author_id) ?></td>
-          <td><?= htmlspecialchars($r->region ?? '-') ?></td>
-          <td><?= htmlspecialchars($r->fraud_type ?? '-') ?></td>
-          <td><?= $r->views ?? 0 ?></td>
-          <td><?= $r->created_at ?></td>
-        </tr>
-      <?php endforeach; ?>
+  <!-- ✅ 서비스 안내 4박스 -->
+  <div class="row text-center g-4 mb-5">
+    <div class="col-md-3">
+      <div class="service-box">
+        <h4>📋 체크리스트</h4>
+        <p>계약 전·중·후 단계별 확인 항목 제공</p>
+        <a href="/project_nextLv/checklist.php" class="btn btn-outline-primary btn-sm mt-2">바로가기</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="service-box">
+        <h4>🛡️ 보험 추천</h4>
+        <p>입력 정보 기반 전세보증보험 비교 추천</p>
+        <a href="/project_nextLv/insurance.php" class="btn btn-outline-primary btn-sm mt-2">추천받기</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="service-box">
+        <h4>📢 공지사항</h4>
+        <p>법률 변경, 서비스 업데이트 등 안내</p>
+        <a href="/project_nextLv/notice.php" class="btn btn-outline-primary btn-sm mt-2">공지 보기</a>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="service-box">
+        <h4>⚖️ 법률상담</h4>
+        <p>무료 법률 자문 예약으로 문제 해결</p>
+        <a href="#" class="btn btn-outline-primary btn-sm mt-2">예약하기</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 최신 공지사항 3개 -->
+  <h4 class="mb-3">📌 최근 공지사항</h4>
+  <ul class="list-group mb-5">
+    <?php
+    $notice_result = $mysqli->query("SELECT * FROM notice ORDER BY notice_id DESC LIMIT 3");
+    while($n = $notice_result->fetch_object()):
+    ?>
+      <li class="list-group-item d-flex justify-content-between">
+        <a href="/project_nextLv/notice_view.php?nid=<?= $n->notice_id ?>" class="text-decoration-none"><?= htmlspecialchars($n->title) ?></a>
+        <span class="text-muted"><?= substr($n->created_at, 0, 10) ?></span>
+      </li>
+    <?php endwhile; ?>
+  </ul>
+
+  <!-- ✅ 빠른 이동 버튼 -->
+  <div class="text-center">
+    <a href="/project_nextLv/board.php" class="btn btn-primary me-2">📂 피해사례 보기</a>
+
+    <?php if (isset($_SESSION['UID'])): ?>
+      <a href="/project_nextLv/write.php" class="btn btn-outline-secondary me-2">✏️ 사례 작성하기</a>
+      <a href="/project_nextLv/checklist.php" class="btn btn-outline-success">📋 체크리스트</a>
     <?php else: ?>
-      <tr><td colspan="7" class="text-center">작성된 게시글이 없습니다.</td></tr>
+      <a href="/project_nextLv/member/login.php" class="btn btn-outline-secondary me-2">✏️ 사례 작성하기</a>
+      <a href="/project_nextLv/member/login.php" class="btn btn-outline-success">📋 체크리스트</a>
     <?php endif; ?>
-  </tbody>
-</table>
-
-<!-- 페이지네이션 -->
-<?php if ($total_pages > 1): ?>
-  <nav class="mt-4">
-    <ul class="pagination justify-content-center">
-      <?php if ($start_page > 1): ?>
-        <li class="page-item"><a class="page-link" href="?page=1&order=<?= $order ?>">처음</a></li>
-      <?php endif; ?>
-      <?php for ($p = $start_page; $p <= $end_page; $p++): ?>
-        <li class="page-item <?= $p == $page ? 'active' : '' ?>">
-          <a class="page-link" href="?page=<?= $p ?>&order=<?= $order ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
-        </li>
-      <?php endfor; ?>
-      <?php if ($end_page < $total_pages): ?>
-        <li class="page-item"><a class="page-link" href="?page=<?= $total_pages ?>&order=<?= $order ?>">끝</a></li>
-      <?php endif; ?>
-    </ul>
-  </nav>
-<?php endif; ?>
-
-<!-- 검색창 -->
-<form class="row mt-4" method="get">
-  <div class="col-md-10">
-    <input type="text" name="search" class="form-control" placeholder="제목 또는 작성자 검색" value="<?= htmlspecialchars($search) ?>">
   </div>
-  <div class="col-md-2 text-end">
-    <button type="submit" class="btn btn-outline-secondary w-100">검색</button>
-  </div>
-</form>
-
-<!-- 하단 글쓰기 버튼 -->
-<div class="text-end mt-3">
-  <?php printWriteButton(); ?>
 </div>
 
 <?php include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/footer.php"; ?>
