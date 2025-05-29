@@ -1,11 +1,11 @@
 <?php
 define('REDIRECT_URI', 'http://localhost/project_nextLv/member/callback.php');
 // 구글 OAuth 설정
-define('GOOGLE_CLIENT_ID', '78045084398-t01vti2fci0js1n8ec14imtpj7rm1lcn.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', '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');
+define('GOOGLE_CLIENT_ID', '');
+define('GOOGLE_CLIENT_SECRET', '');
 // 네이버 API 설정
-define('NAVER_CLIENT_ID', 'WgbHLnzndKMviUfawavC');
-define('NAVER_CLIENT_SECRET', 'E05WRiT8Wq');
+define('NAVER_CLIENT_ID', '');
+define('NAVER_CLIENT_SECRET', '');
 
 // 구글 로그인 URL 생성
 $google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth?"
