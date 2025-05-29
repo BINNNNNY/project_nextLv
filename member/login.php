@@ -1,4 +1,5 @@
 <?php include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php"; ?>
+<?php require_once 'config.php'; ?>
 
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
   <div class="card p-4 shadow-sm" style="width: 100%; max-width: 400px;">
@@ -26,9 +27,16 @@
     <div class="text-center mb-3 text-muted">or</div>
 
     <div class="d-grid gap-2">
-      <button class="btn btn-outline-dark">Google로 로그인하기</button>
-      <button class="btn btn-outline-success">네이버로 로그인하기</button>
-       <button class="btn btn-warning text-dark">카카오로 로그인하기</button>
+      <a href="<?php echo $google_auth_url; ?>">
+        <button class="btn btn-outline-dark social-login-btn">
+          <img src="https://www.google.com/favicon.ico" alt="구글 로고"> Google로 로그인하기
+        </button>
+      </a>
+      <a href="<?php echo $naver_auth_url; ?>">
+        <button class="btn btn-outline-dark social-login-btn">
+          <img src="https://www.naver.com/favicon.ico" alt="네이버 로고"> 네이버로 로그인하기
+        </button>
+      </a>
     </div>
 
     <div class="text-center text-muted mt-4 small">
@@ -38,3 +46,18 @@
 </div>
 
 <?php include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/footer.php"; ?>
+
+<style>
+.social-login-btn {
+    width: 300px !important;
+    margin: 0 auto;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.social-login-btn img {
+    width: 18px;
+    height: 18px;
+}
+</style>
