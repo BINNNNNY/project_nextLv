@@ -1,27 +1,26 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-  session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
 
-// 자동 로그인 (옵션)
+// 자동 로그인 처리
 if (!isset($_SESSION['UID']) && isset($_COOKIE['user_token'])) {
   $token = $_COOKIE['user_token'];
-  $check = $mysqli->query("SELECT * FROM users WHERE token = '$token'");
-  if ($check && $check->num_rows > 0) {
-    $u = $check->fetch_assoc();
-    $_SESSION['UID'] = $u['user_id'];
-    $_SESSION['UNAME'] = $u['name'];
-    $_SESSION['ROLE'] = $u['role'];
+  $result = $mysqli->query("SELECT * FROM users WHERE token = '$token'");
+  
+  if ($result && $result->num_rows > 0) {
+    $user = $result->fetch_assoc();
+    $_SESSION['UID'] = $user['user_id'];
+    $_SESSION['UNAME'] = $user['name'];
+    $_SESSION['ROLE'] = $user['role'];
   }
 }
 
-// 현재 페이지 확인
-$current = basename($_SERVER['PHP_SELF']);
+// 현재 페이지와 메뉴 활성화 클래스 반환 함수
+$currentPage = basename($_SERVER['PHP_SELF']);
 function activeMenu($page) {
-  global $current;
-  return $current === $page ? 'text-white bg-primary rounded px-3 py-1' : 'text-dark';
+  global $currentPage;
+  return $currentPage === $page ? 'active-tab' : 'inactive-tab';
 }
 ?>
 
@@ -39,9 +38,29 @@ function activeMenu($page) {
     .header-nav a {
       text-decoration: none;
       margin: 0 1rem;
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-weight: 500;
+      line-height: 1.5;
+      transition: background-color 0.2s, color 0.2s;
     }
+
+    .active-tab {
+      background-color: #0d6efd;
+      color: #fff !important;
+    }
+
+    .inactive-tab {
+      color: #212529 !important;
+    }
+
     .icon-primary svg {
       color: #4A3AFF;
+    }
+
+    /* Prevent layout shift when scrollbar appears */
+    html {
+      overflow-y: scroll;
     }
   </style>
 </head>
@@ -49,9 +68,11 @@ function activeMenu($page) {
 <body>
   <!-- ✅ 헤더 -->
   <div class="container d-flex justify-content-between align-items-center py-3 border-bottom">
+    
     <!-- 로고 -->
     <a href="/project_nextLv/index.php" class="d-flex align-items-center text-decoration-none text-dark icon-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-house-fill me-2" viewBox="0 0 16 16">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+           class="bi bi-house-fill me-2" viewBox="0 0 16 16">
         <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
         <path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z"/>
       </svg>
@@ -60,13 +81,13 @@ function activeMenu($page) {
 
     <!-- 네비게이션 -->
     <nav class="header-nav d-flex justify-content-center flex-grow-1">
-      <a class="nav-link <?= activeMenu('notice.php') ?>" href="/project_nextLv/notice.php">공지사항</a>
-      <a class="nav-link <?= activeMenu('board.php') ?>" href="/project_nextLv/board.php">게시판</a>
-      <a class="nav-link <?= activeMenu('insurance.php') ?>" href="/project_nextLv/insurance.php">전세 보증</a>
-      <a class="nav-link <?= activeMenu('checklist.php') ?>" href="/project_nextLv/checklist.php">체크리스트</a>
+      <a class="<?= activeMenu('notice.php') ?>" href="/project_nextLv/notice.php">공지사항</a>
+      <a class="<?= activeMenu('board.php') ?>" href="/project_nextLv/board.php">게시판</a>
+      <a class="<?= activeMenu('insurance.php') ?>" href="/project_nextLv/insurance.php">전세 보증 보험 추천</a>
+      <a class="<?= activeMenu('checklist.php') ?>" href="/project_nextLv/checklist.php">체크리스트</a>
     </nav>
 
-    <!-- 사용자 상태 -->
+    <!-- 사용자 상태 영역 -->
     <div class="d-flex align-items-center">
       <a href="#" class="btn btn-outline-primary btn-sm me-2">무료 법률 자문</a>
 
