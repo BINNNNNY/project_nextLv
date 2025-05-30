@@ -2,16 +2,38 @@
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/header.php";
 include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/dbcon.php";
 
-// 정렬 조건
+$region_data = json_decode(file_get_contents($_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/data/region_full_accurate.json"), true);
+$region_options = array_keys($region_data);
+$fraud_options = [
+  '이중계약', '허위 정보 제공', '가짜 임대인',
+  '보증금 미반환', '명의 도용', '기타'
+];
+
+$selected_region = $_GET['region'] ?? '';
+$selected_sub_region = $_GET['sub_region'] ?? '';
+$selected_fraud = $_GET['fraud_type'] ?? '';
+$search = $_GET['search'] ?? '';
+
 $order = $_GET['order'] ?? 'post_id';
 $allowed = ['post_id', 'title', 'author_id', 'created_at', 'views'];
 $order_by = in_array($order, $allowed) ? $order : 'post_id';
 
-// 검색 처리
-$search = $_GET['search'] ?? '';
-$where = $search ? "WHERE title LIKE '%$search%' OR author_id LIKE '%$search%'" : '';
+$where_clauses = [];
+if ($search) {
+  $escaped = $mysqli->real_escape_string($search);
+  $where_clauses[] = "(title LIKE '%$escaped%' OR author_id LIKE '%$escaped%')";
+}
+if ($selected_region) {
+  $where_clauses[] = "region = '{$mysqli->real_escape_string($selected_region)}'";
+}
+if ($selected_sub_region) {
+  $where_clauses[] = "sub_region = '{$mysqli->real_escape_string($selected_sub_region)}'";
+}
+if ($selected_fraud) {
+  $where_clauses[] = "fraud_type = '{$mysqli->real_escape_string($selected_fraud)}'";
+}
+$where = count($where_clauses) ? "WHERE " . implode(' AND ', $where_clauses) : '';
 
-// 페이지네이션
 $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 5;
 $offset = ($page - 1) * $limit;
@@ -27,14 +49,11 @@ if ($end_page - $start_page < $btn_count - 1) {
   $start_page = max(1, $end_page - $btn_count + 1);
 }
 
-// 게시글 목록 가져오기
 $result = $mysqli->query("SELECT * FROM post $where ORDER BY $order_by DESC LIMIT $offset, $limit") or die($mysqli->error);
 $rsc = [];
 while ($rs = $result->fetch_object()) {
   $rsc[] = $rs;
 }
-
-// 글쓰기 버튼 출력 함수
 function printWriteButton() {
   if (isset($_SESSION['UID'])) {
     echo '<a href="/project_nextLv/write.php" class="btn btn-primary">글쓰기</a>';
@@ -44,16 +63,82 @@ function printWriteButton() {
 }
 ?>
 
-<div class="page-title-bar">게시판</div>
+<div class="page-title-bar text-center fw-bold fs-4">게시판</div>
 
-<!-- 정렬 버튼 -->
-<div class="d-flex justify-content-between mb-3">
-  <div class="btn-group" role="group">
-    <a href="?order=views" class="btn <?= $order === 'views' ? 'btn-primary' : 'btn-outline-secondary' ?>">조회순</a>
-    <a href="?order=post_id" class="btn <?= $order === 'post_id' ? 'btn-primary' : 'btn-outline-secondary' ?>">최신순</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="btn-group">
+    <a href="?<?= http_build_query(array_merge($_GET, ['order' => 'views'])) ?>" class="btn <?= $order === 'views' ? 'btn-primary' : 'btn-outline-secondary' ?>">조회순</a>
+    <a href="?<?= http_build_query(array_merge($_GET, ['order' => 'post_id'])) ?>" class="btn <?= $order === 'post_id' ? 'btn-primary' : 'btn-outline-secondary' ?>">최신순</a>
   </div>
   <?php printWriteButton(); ?>
 </div>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mb-4">
+  <select id="region" class="form-select w-auto">
+    <option value="">시/도 선택</option>
+    <?php foreach ($region_options as $r): ?>
+      <option value="<?= $r ?>" <?= $selected_region === $r ? 'selected' : '' ?>><?= $r ?></option>
+    <?php endforeach; ?>
+  </select>
+
+  <select id="sub_region" class="form-select w-auto">
+    <option value="">시/군/구 선택</option>
+  </select>
+
+  <select id="fraud_type" class="form-select w-auto" onchange="location.href='?<?= http_build_query($_GET) ?>&fraud_type=' + this.value">
+    <option value="">사기유형</option>
+    <?php foreach ($fraud_options as $f): ?>
+      <option value="<?= $f ?>" <?= $selected_fraud === $f ? 'selected' : '' ?>><?= $f ?></option>
+    <?php endforeach; ?>
+  </select>
+</div>
+
+<script>
+  const regionData = <?= json_encode($region_data, JSON_UNESCAPED_UNICODE) ?>;
+  const regionSelect = document.getElementById('region');
+  const subRegionSelect = document.getElementById('sub_region');
+
+  function updateSubRegions() {
+    const selected = regionSelect.value;
+    subRegionSelect.innerHTML = '<option value="">시/군/구 선택</option>';
+    if (regionData[selected]) {
+      regionData[selected].forEach(sr => {
+        const opt = document.createElement('option');
+        opt.value = sr;
+        opt.textContent = sr;
+        if ("<?= $selected_sub_region ?>" === sr) opt.selected = true;
+        subRegionSelect.appendChild(opt);
+      });
+    }
+  }
+  regionSelect.addEventListener("change", () => {
+    updateSubRegions();
+    const query = new URLSearchParams(window.location.search);
+    query.set('region', regionSelect.value);
+    query.delete('page');
+    location.href = '?' + query.toString();
+  });
+  subRegionSelect.addEventListener("change", () => {
+    const query = new URLSearchParams(window.location.search);
+    query.set('sub_region', subRegionSelect.value);
+    query.delete('page');
+    location.href = '?' + query.toString();
+  });
+  window.addEventListener("DOMContentLoaded", updateSubRegions);
+</script>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-10">
+    <input type="text" name="search" class="form-control" placeholder="제목 또는 작성자 검색" value="<?= htmlspecialchars($search) ?>">
+    <input type="hidden" name="region" value="<?= htmlspecialchars($selected_region) ?>">
+    <input type="hidden" name="sub_region" value="<?= htmlspecialchars($selected_sub_region) ?>">
+    <input type="hidden" name="fraud_type" value="<?= htmlspecialchars($selected_fraud) ?>">
+    <input type="hidden" name="order" value="<?= htmlspecialchars($order) ?>">
+  </div>
+  <div class="col-md-2 text-end">
+    <button type="submit" class="btn btn-outline-secondary w-100">검색</button>
+  </div>
+</form>
 
 <table class="table table-striped">
   <thead class="table-light">
@@ -75,7 +160,7 @@ function printWriteButton() {
           <td><?= $num-- ?></td>
           <td><a href="/project_nextLv/view.php?pid=<?= $r->post_id ?>"><?= htmlspecialchars($r->title) ?></a></td>
           <td><?= htmlspecialchars($r->author_id) ?></td>
-          <td><?= htmlspecialchars($r->region ?? '-') ?></td>
+          <td><?= htmlspecialchars(($r->region ?? '-') . ' ' . ($r->sub_region ?? '')) ?></td>
           <td><?= htmlspecialchars($r->fraud_type ?? '-') ?></td>
           <td><?= $r->views ?? 0 ?></td>
           <td><?= $r->created_at ?></td>
@@ -87,48 +172,28 @@ function printWriteButton() {
   </tbody>
 </table>
 
-<!-- 페이지네이션 -->
 <?php if ($total_pages > 1): ?>
   <nav class="mt-4">
     <ul class="pagination justify-content-center">
-
-      <!-- 이전 -->
       <?php if ($page > 1): ?>
-        <li class="page-item">
-          <a class="page-link" href="?page=<?= $page - 1 ?>&order=<?= $order ?>&search=<?= urlencode($search) ?>">이전</a>
-        </li>
+        <li class="page-item"><a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>">이전</a></li>
       <?php endif; ?>
-
-      <!-- 숫자 버튼 -->
       <?php for ($p = $start_page; $p <= $end_page; $p++): ?>
         <li class="page-item <?= $p == $page ? 'active' : '' ?>">
-          <a class="page-link" href="?page=<?= $p ?>&order=<?= $order ?>&search=<?= urlencode($search) ?>"><?= $p ?></a>
+          <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $p])) ?>"><?= $p ?></a>
         </li>
       <?php endfor; ?>
-
-      <!-- 다음 -->
       <?php if ($page < $total_pages): ?>
-        <li class="page-item">
-          <a class="page-link" href="?page=<?= $page + 1 ?>&order=<?= $order ?>&search=<?= urlencode($search) ?>">다음</a>
-        </li>
+        <li class="page-item"><a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>">다음</a></li>
       <?php endif; ?>
     </ul>
   </nav>
 <?php endif; ?>
 
-<!-- 검색창 -->
-<form class="row mt-4" method="get">
-  <div class="col-md-10">
-    <input type="text" name="search" class="form-control" placeholder="제목 또는 작성자 검색" value="<?= htmlspecialchars($search) ?>">
-  </div>
-  <div class="col-md-2 text-end">
-    <button type="submit" class="btn btn-outline-secondary w-100">검색</button>
-  </div>
-</form>
-
-<!-- 하단 글쓰기 버튼 -->
-<div class="text-end mt-3">
-  <?php printWriteButton(); ?>
-</div>
-
 <?php include $_SERVER["DOCUMENT_ROOT"] . "/project_nextLv/inc/footer.php"; ?>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("✅ Bootstrap dropdown script loaded.");
+  });
+</script>
